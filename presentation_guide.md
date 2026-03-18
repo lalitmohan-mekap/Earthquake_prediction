@@ -1,27 +1,20 @@
-# VS Code Setup & Presentation Guide
 
-Since you'll be presenting this undergraduate research project, here is exactly how to run it on any machine with VS Code and what to focus on during your presentation.
-
----
-
-## 1. How to run in VS Code
+## 1. Execution.
 
 ### Step A: Environment Setup
-1. **Open Folder**: Open the `new pj` folder in VS Code.
-2. **Open Terminal**: Go to `Terminal -> New Terminal` (ensure it's using PowerShell or Command Prompt).
-3. **Create Virtual Env (Recommended)**:
+
+1. **Create Virtual Env (Recommended)**:
    ```bash
    python -m venv venv
    .\venv\Scripts\activate
    ```
-4. **Install Dependencies**:
+2. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    pip install tabulate
    ```
 
 ### Step B: Execution Flow
-You can run the scripts one by one. I recommend running them in this order for your live demo or to refresh the results:
 
 1. `python execution/fetch_earthquake_data.py` (Downloads USGS data)
 2. `python execution/preprocess_data.py` (Cleans and prepares features)

@@ -23,6 +23,11 @@ FEATURE_NAMES = [
     "latitude", "longitude", "depth",
     "year", "month", "hour", "day_of_week",
     "days_since_last",
+    "nst", "gap", "dmin", "rms", "magError", "horizontalError", "depthError",
+    "mag_depth_interaction", "gap_rms_interaction", "precision_interaction",
+    "mag_lag_1", "depth_change",
+    "rolling_mean_mag_20", "rolling_std_mag_20", "rolling_mean_depth_50",
+    "lat_bin", "lon_bin", "grid_id"
 ]
 
 
@@ -31,12 +36,10 @@ def load_models():
     models = {}
     required_files = {
         "scaler": "scaler.joblib",
-        "lr_reg": "model1_linear_regression.joblib",
-        "rf_reg": "model1_random_forest_regressor.joblib",
-        "lr_clf": "model2_logistic_regression.joblib",
-        "rf_clf": "model2_random_forest_classifier.joblib",
+        "model_ensemble": "model1_ensemble_regressor.joblib",
+        "model_risk": "model2_random_forest_classifier.joblib",
         "label_encoder": "model2_label_encoder.joblib",
-        "lr_binary": "model3_logistic_regression_binary.joblib",
+        "model_binary": "model3_gradient_boosting_binary.joblib",
     }
 
     for key, fname in required_files.items():
@@ -68,25 +71,20 @@ def predict(features: np.ndarray, models: dict) -> dict:
     scaler = models["scaler"]
     X_scaled = scaler.transform(features)
 
-    # Model 1: Magnitude prediction
-    mag_lr = models["lr_reg"].predict(X_scaled)[0]
-    mag_rf = models["rf_reg"].predict(features)[0]
+    # Model 1: Magnitude prediction (Ensemble)
+    mag_pred = models["model_ensemble"].predict(features)[0]
 
     # Model 2: Risk classification
     le = models["label_encoder"]
-    risk_lr_idx = models["lr_clf"].predict(X_scaled)[0]
-    risk_rf_idx = models["rf_clf"].predict(features)[0]
-    risk_lr = le.inverse_transform([risk_lr_idx])[0]
-    risk_rf = le.inverse_transform([risk_rf_idx])[0]
+    risk_idx = models["model_risk"].predict(features)[0]
+    risk_level = le.inverse_transform([risk_idx])[0]
 
     # Model 3: High-magnitude probability
-    high_prob = models["lr_binary"].predict_proba(X_scaled)[0][1]
+    high_prob = models["model_binary"].predict_proba(X_scaled)[0][1]
 
     return {
-        "magnitude_lr": round(float(mag_lr), 2),
-        "magnitude_rf": round(float(mag_rf), 2),
-        "risk_lr": risk_lr,
-        "risk_rf": risk_rf,
+        "magnitude": round(float(mag_pred), 2),
+        "risk_level": risk_level,
         "high_mag_probability": round(float(high_prob), 4),
     }
 
@@ -112,11 +110,9 @@ def interactive_mode(models: dict):
             result = predict(features, models)
 
             print("\n  --- Predictions ---")
-            print(f"  Magnitude (Linear Regression):  {result['magnitude_lr']}")
-            print(f"  Magnitude (Random Forest):      {result['magnitude_rf']}")
-            print(f"  Risk Level (Logistic Reg):       {result['risk_lr']}")
-            print(f"  Risk Level (Random Forest):      {result['risk_rf']}")
-            print(f"  High-Magnitude Probability:      {result['high_mag_probability']:.2%}")
+            print(f"  Predicted Magnitude:        {result['magnitude']}")
+            print(f"  Seismic Risk Level:         {result['risk_level']}")
+            print(f"  High-Magnitude Probability: {result['high_mag_probability']:.2%}")
             print()
 
         except (ValueError, KeyboardInterrupt):
@@ -134,12 +130,10 @@ def cli_mode(args: list, models: dict):
     features = np.array(values).reshape(1, -1)
     result = predict(features, models)
 
-    print("Predictions:")
-    print(f"  Magnitude (Linear Regression):  {result['magnitude_lr']}")
-    print(f"  Magnitude (Random Forest):      {result['magnitude_rf']}")
-    print(f"  Risk Level (Logistic Reg):       {result['risk_lr']}")
-    print(f"  Risk Level (Random Forest):      {result['risk_rf']}")
-    print(f"  High-Magnitude Probability:      {result['high_mag_probability']:.2%}")
+    print("\n--- Earthquake Prediction Results ---")
+    print(f"  Predicted Magnitude:        {result['magnitude']}")
+    print(f"  Seismic Risk Level:         {result['risk_level']}")
+    print(f"  High-Magnitude Probability: {result['high_mag_probability']:.2%}")
 
 
 def main():

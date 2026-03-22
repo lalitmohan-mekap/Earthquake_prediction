@@ -24,9 +24,13 @@ import pandas as pd
 import numpy as np
 import joblib
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import (
+    RandomForestRegressor, RandomForestClassifier,
+    GradientBoostingRegressor, GradientBoostingClassifier,
+    VotingRegressor, VotingClassifier
+)
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -41,6 +45,11 @@ FEATURE_COLS = [
     "latitude", "longitude", "depth",
     "year", "month", "hour", "day_of_week",
     "days_since_last",
+    "nst", "gap", "dmin", "rms", "magError", "horizontalError", "depthError",
+    "mag_depth_interaction", "gap_rms_interaction", "precision_interaction",
+    "mag_lag_1", "depth_change",
+    "rolling_mean_mag_20", "rolling_std_mag_20", "rolling_mean_depth_50",
+    "lat_bin", "lon_bin", "grid_id"
 ]
 
 
@@ -52,10 +61,8 @@ def load_train_data():
 
     df = pd.read_csv(TRAIN_FILE)
     print(f"Loaded {len(df)} training samples")
-    # For verification speed, sample 50k events
-    if len(df) > 50000:
-        df = df.sample(n=50000, random_state=42).copy()
-        print(f"Subsampled to {len(df)} training samples for verification speed")
+    # Subsampling disabled for Phase 3 Execution to maximize accuracy
+    return df
     return df
 
 
@@ -78,12 +85,27 @@ def train_model_1(X: np.ndarray, y_mag: np.ndarray, scaler: StandardScaler):
 
     # 1b. Random Forest Regressor
     print("\n  Training Random Forest Regressor...")
-    rf = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42, n_jobs=-1)
-    rf.fit(X, y_mag)  # RF doesn't need scaling
+    rf = RandomForestRegressor(n_estimators=100, max_depth=15, random_state=42, n_jobs=-1)
+    rf.fit(X, y_mag)
     train_r2_rf = rf.score(X, y_mag)
-    print(f"  Train R² = {train_r2_rf:.4f}")
-    joblib.dump(rf, os.path.join(MODEL_DIR, "model1_random_forest_regressor.joblib"))
-    print("  ✓ Saved model1_random_forest_regressor.joblib")
+    print(f"  Train R² (RF) = {train_r2_rf:.4f}")
+
+    # 1c. Gradient Boosting Regressor
+    print("\n  Training Gradient Boosting Regressor...")
+    gbr = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=5, random_state=42)
+    gbr.fit(X, y_mag)
+    train_r2_gbr = gbr.score(X, y_mag)
+    print(f"  Train R² (GBR) = {train_r2_gbr:.4f}")
+
+    # 1d. Voting Regresson (Ensemble)
+    print("\n  Training Voting Regressor Ensemble...")
+    vr = VotingRegressor([("rf", rf), ("gbr", gbr)])
+    vr.fit(X, y_mag)
+    train_r2_vr = vr.score(X, y_mag)
+    print(f"  Train R² (Ensemble) = {train_r2_vr:.4f}")
+
+    joblib.dump(vr, os.path.join(MODEL_DIR, "model1_ensemble_regressor.joblib"))
+    print("  ✓ Saved model1_ensemble_regressor.joblib")
 
 
 def train_model_2(X: np.ndarray, y_risk: np.ndarray, scaler: StandardScaler):
@@ -128,15 +150,19 @@ def train_model_3(X: np.ndarray, y_high: np.ndarray, scaler: StandardScaler):
 
     X_scaled = scaler.transform(X)
 
-    print("\n  Training Logistic Regression (binary)...")
-    log_reg = LogisticRegression(
-        max_iter=1000, class_weight="balanced", random_state=42
+    # Model 3: Address extreme class imbalance (0.3% minority) using weights
+    print(f"  Training weighted Model 3 (High Magnitude binary)...")
+    weights = np.where(y_high == 1, 1000, 1) # 1000x more weight to High events
+
+    print("\n  Training Gradient Boosting Classifier (binary, weighted)...")
+    gbc = GradientBoostingClassifier(
+        n_estimators=500, learning_rate=0.1, max_depth=6, random_state=42
     )
-    log_reg.fit(X_scaled, y_high)
-    train_acc = log_reg.score(X_scaled, y_high)
-    print(f"  Train Accuracy = {train_acc:.4f}")
-    joblib.dump(log_reg, os.path.join(MODEL_DIR, "model3_logistic_regression_binary.joblib"))
-    print("  ✓ Saved model3_logistic_regression_binary.joblib")
+    gbc.fit(X, y_high, sample_weight=weights)
+    train_acc = gbc.score(X, y_high, sample_weight=weights)
+    print(f"  Train Accuracy (weighted) = {train_acc:.4f}")
+    joblib.dump(gbc, os.path.join(MODEL_DIR, "model3_gradient_boosting_binary.joblib"))
+    print("  ✓ Saved model3_gradient_boosting_binary.joblib")
 
 
 def main():

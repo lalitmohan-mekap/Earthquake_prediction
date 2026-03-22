@@ -36,6 +36,11 @@ FEATURE_COLS = [
     "latitude", "longitude", "depth",
     "year", "month", "hour", "day_of_week",
     "days_since_last",
+    "nst", "gap", "dmin", "rms", "magError", "horizontalError", "depthError",
+    "mag_depth_interaction", "gap_rms_interaction", "precision_interaction",
+    "mag_lag_1", "depth_change",
+    "rolling_mean_mag_20", "rolling_std_mag_20", "rolling_mean_depth_50",
+    "lat_bin", "lon_bin", "grid_id"
 ]
 
 sns.set_theme(style="whitegrid", font_scale=1.1)
@@ -67,8 +72,8 @@ def evaluate_model_1(X, X_scaled, y_mag, results):
     print("=" * 60)
 
     models = {
+        "Ensemble (RF+GBR)": ("model1_ensemble_regressor.joblib", False),
         "Linear Regression": ("model1_linear_regression.joblib", True),
-        "Random Forest Regressor": ("model1_random_forest_regressor.joblib", False),
     }
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
@@ -184,7 +189,7 @@ def evaluate_model_3(X_scaled, y_high, results):
     print("MODEL 3: High-Magnitude Probability (Binary)")
     print("=" * 60)
 
-    model = load_model("model3_logistic_regression_binary.joblib")
+    model = load_model("model3_gradient_boosting_binary.joblib")
     if model is None:
         return
 
@@ -203,7 +208,7 @@ def evaluate_model_3(X_scaled, y_high, results):
 
     results.append({
         "Model Group": "Model 3 (Probability)",
-        "Algorithm": "Logistic Regression (Binary)",
+        "Algorithm": "Gradient Boosting (Binary)",
         "R2_Score": "",
         "MAE": "",
         "RMSE": "",

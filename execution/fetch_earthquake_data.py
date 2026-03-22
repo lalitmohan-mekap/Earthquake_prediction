@@ -88,8 +88,19 @@ def main():
     print("=" * 60)
     print(f"Done! Saved {len(combined)} events to {OUTPUT_FILE}")
 
+    # Report on new features
+    new_cols = ["nst", "gap", "dmin", "rms", "magError", "horizontalError", "depthError"]
+    print("\nFeature Coverage (non-null counts):")
+    for col in new_cols:
+        if col in combined.columns:
+            count = combined[col].count()
+            pct = (count / len(combined)) * 100
+            print(f"  {col:16}: {count:8} ({pct:5.1f}%)")
+        else:
+            print(f"  {col:16}: MISSING")
+
     if len(combined) < 1000:
-        print("WARNING: Dataset is unusually small (<1000 events). Verify data integrity.")
+        print("\nWARNING: Dataset is unusually small (<1000 events). Verify data integrity.")
 
 
 if __name__ == "__main__":

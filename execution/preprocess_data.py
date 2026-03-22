@@ -63,7 +63,43 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df.sort_values("time", inplace=True)
     df.reset_index(drop=True, inplace=True)
 
-    # Temporal features
+    # Impute new features (median) -------------------------------------------
+    new_cols = ["nst", "gap", "dmin", "rms", "magError", "horizontalError", "depthError"]
+    for col in new_cols:
+        if col in df.columns:
+            median_val = df[col].median()
+            df[col].fillna(median_val, inplace=True)
+        else:
+            df[col] = 0.0
+
+    # Interaction Features ---------------------------------------------------
+    df["mag_depth_interaction"] = df["mag"] * df["depth"]
+    df["gap_rms_interaction"] = df["gap"] * df["rms"]
+    df["precision_interaction"] = df["horizontalError"] * df["depthError"]
+
+    # Temporal & Lag Features ------------------------------------------------
+    df["time"] = pd.to_datetime(df["time"], utc=True)
+    df.sort_values("time", inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
+    # Lag 1: Magnitude of previous event
+    df["mag_lag_1"] = df["mag"].shift(1).fillna(df["mag"].mean())
+    df["depth_change"] = df["depth"].diff().fillna(0)
+
+    # Rolling Statistics (Windows of 20, 50 events)
+    # Use shift(1) to avoid data leakage (current row doesn't see its own mag)
+    df["rolling_mean_mag_20"] = df["mag"].shift(1).rolling(window=20, min_periods=1).mean()
+    df["rolling_std_mag_20"] = df["mag"].shift(1).rolling(window=20, min_periods=1).std().fillna(0)
+    df["rolling_mean_depth_50"] = df["depth"].shift(1).rolling(window=50, min_periods=1).mean()
+
+    # Spatial Binning (5-degree grid) -----------------------------------------
+    df["lat_bin"] = (df["latitude"] / 5.0).round() * 5.0
+    df["lon_bin"] = (df["longitude"] / 5.0).round() * 5.0
+    df["grid_id"] = (
+        df["lat_bin"].astype(str) + "_" + df["lon_bin"].astype(str)
+    ).astype("category").cat.codes
+
+    # Temporal features ------------------------------------------------------
     df["year"] = df["time"].dt.year
     df["month"] = df["time"].dt.month
     df["hour"] = df["time"].dt.hour
@@ -73,7 +109,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["days_since_last"] = df["time"].diff().dt.total_seconds() / 86400.0
     df["days_since_last"].fillna(0, inplace=True)
 
-    # Depth bins (useful categorical feature for some analysis)
+    # Depth bins
     df["depth_bin"] = pd.cut(
         df["depth"],
         bins=[0, 30, 70, 300, 700],
@@ -104,6 +140,11 @@ def select_features(df: pd.DataFrame) -> pd.DataFrame:
         "latitude", "longitude", "depth",
         "year", "month", "hour", "day_of_week",
         "days_since_last",
+        "nst", "gap", "dmin", "rms", "magError", "horizontalError", "depthError",
+        "mag_depth_interaction", "gap_rms_interaction", "precision_interaction",
+        "mag_lag_1", "depth_change",
+        "rolling_mean_mag_20", "rolling_std_mag_20", "rolling_mean_depth_50",
+        "lat_bin", "lon_bin", "grid_id"
     ]
     target_cols = ["mag", "risk_level", "is_high_magnitude"]
 

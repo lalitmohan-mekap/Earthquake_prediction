@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthquake Prediction — ML-Powered Seismic Analysis</title>
+    <meta name="description" content="Multi-model machine learning framework for earthquake magnitude prediction, seismic risk classification, and high-magnitude probability estimation using USGS data.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <!-- ═══════════ NAVIGATION ═══════════ -->
+    <nav id="navbar">
+        <div class="nav-inner">
+            <a href="#hero" class="nav-logo">
+                <span class="logo-icon">◉</span>
+                <span class="logo-text">SeismoAI</span>
+            </a>
+            <div class="nav-links">
+                <a href="#predict">Predict</a>
+                <a href="#insights">Insights</a>
+                <a href="#performance">Performance</a>
+                <a href="#about">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══════════ HERO SECTION ═══════════ -->
+    <section id="hero">
+        <div class="hero-bg">
+            <div class="seismic-line line-1"></div>
+            <div class="seismic-line line-2"></div>
+            <div class="seismic-line line-3"></div>
+            <div class="grid-overlay"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">URP 4301 · ITER · 8th Semester 2026</div>
+            <h1>Earthquake<br><span class="gradient-text">Prediction</span></h1>
+            <p class="hero-subtitle">
+                Multi-model machine learning framework analyzing <strong>376,000+</strong> seismic events
+                from the USGS catalog to predict magnitude, classify risk levels, and estimate
+                high-magnitude probability.
+            </p>
+            <div class="hero-actions">
+                <a href="#predict" class="btn btn-primary">
+                    <span class="btn-pulse"></span>
+                    Start Predicting
+                </a>
+                <a href="#insights" class="btn btn-secondary">View Data Insights</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value" id="hero-events" data-count="376000">0</span>
+                    <span class="stat-label">Events Analyzed</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="hero-r2">96.6%</span>
+                    <span class="stat-label">R² Score</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="hero-models">3</span>
+                    <span class="stat-label">ML Models</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="hero-years">25</span>
+                    <span class="stat-label">Years of Data</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ═══════════ PREDICTION SECTION ═══════════ -->
+    <section id="predict">
+        <div class="section-header">
+            <span class="section-tag">Prediction Engine</span>
+            <h2>Run a Prediction</h2>
+            <p>Enter earthquake parameters to get real-time predictions from our trained models.
+               Only 3 inputs required — all derived features are auto-computed.</p>
+        </div>
+
+        <div class="predict-layout">
+            <!-- Form Card -->
+            <div class="glass-card predict-form-card">
+                <form id="predict-form">
+                    <div class="form-section">
+                        <h3>📍 Location & Depth</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="latitude">Latitude</label>
+                                <input type="number" id="latitude" name="latitude"
+                                       step="0.0001" min="-90" max="90" placeholder="e.g. 35.6762" required>
+                                <span class="form-hint">-90 to 90</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="longitude">Longitude</label>
+                                <input type="number" id="longitude" name="longitude"
+                                       step="0.0001" min="-180" max="180" placeholder="e.g. 139.6503" required>
+                                <span class="form-hint">-180 to 180</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="depth">Depth (km)</label>
+                                <input type="number" id="depth" name="depth"
+                                       step="0.1" min="0" max="700" placeholder="e.g. 10.0" required>
+                                <span class="form-hint">0 to 700 km</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <details class="form-advanced">
+                        <summary>⚙ Advanced — Date & Time (optional)</summary>
+                        <div class="form-row" style="margin-top: 1rem">
+                            <div class="form-group">
+                                <label for="year">Year</label>
+                                <input type="number" id="year" name="year" min="2000" max="2030" placeholder="2025">
+                            </div>
+                            <div class="form-group">
+                                <label for="month">Month</label>
+                                <input type="number" id="month" name="month" min="1" max="12" placeholder="1-12">
+                            </div>
+                            <div class="form-group">
+                                <label for="hour">Hour (UTC)</label>
+                                <input type="number" id="hour" name="hour" min="0" max="23" placeholder="0-23">
+                            </div>
+                            <div class="form-group">
+                                <label for="day_of_week">Day of Week</label>
+                                <select id="day_of_week" name="day_of_week">
+                                    <option value="">Auto (today)</option>
+                                    <option value="0">Monday</option>
+                                    <option value="1">Tuesday</option>
+                                    <option value="2">Wednesday</option>
+                                    <option value="3">Thursday</option>
+                                    <option value="4">Friday</option>
+                                    <option value="5">Saturday</option>
+                                    <option value="6">Sunday</option>
+                                </select>
+                            </div>
+                        </div>
+                    </details>
+
+                    <button type="submit" class="btn btn-primary btn-predict" id="predict-btn">
+                        <span class="btn-text">⚡ Predict Earthquake</span>
+                        <span class="btn-loading" style="display:none">
+                            <span class="spinner"></span> Analyzing...
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Quick Location Presets -->
+                <div class="quick-locations">
+                    <span class="quick-label">QUICK FILL:</span>
+                    <button type="button" class="quick-btn" data-lat="28.7041" data-lon="77.1025" data-depth="15">🇮🇳 Delhi</button>
+                    <button type="button" class="quick-btn" data-lat="23.2420" data-lon="69.6669" data-depth="16">🇮🇳 Gujarat (Bhuj)</button>
+                    <button type="button" class="quick-btn" data-lat="26.1445" data-lon="91.7362" data-depth="20">🇮🇳 Assam</button>
+                    <button type="button" class="quick-btn" data-lat="11.7401" data-lon="92.6586" data-depth="30">🇮🇳 Andaman</button>
+                    <button type="button" class="quick-btn" data-lat="35.6762" data-lon="139.6503" data-depth="30">🇯🇵 Tokyo</button>
+                    <button type="button" class="quick-btn" data-lat="37.7749" data-lon="-122.4194" data-depth="10">🇺🇸 San Francisco</button>
+                    <button type="button" class="quick-btn" data-lat="28.3949" data-lon="84.1240" data-depth="15">🇳🇵 Nepal</button>
+                    <button type="button" class="quick-btn" data-lat="-33.4489" data-lon="-70.6693" data-depth="50">🇨🇱 Chile</button>
+                </div>
+            </div>
+
+            <!-- Results Card (hidden initially) -->
+            <div class="glass-card results-card" id="results-card" style="display:none">
+                <h3>📊 Prediction Results</h3>
+                <p class="results-disclaimer"><em><strong>Note:</strong> This model performs a statistical hazard assessment. It answers: "Based on geological history, <strong>IF</strong> an earthquake were to happen at this location today, what is the most statistically probable magnitude and risk level?"</em></p>
+                <div class="results-grid">
+                    <!-- Magnitude -->
+                    <div class="result-item result-magnitude">
+                        <div class="result-icon">🌊</div>
+                        <div class="result-label">Predicted Magnitude</div>
+                        <div class="result-value" id="result-magnitude">—</div>
+                        <div class="result-bar">
+                            <div class="result-bar-fill" id="mag-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="result-scale">
+                            <span>2.5</span><span>5.0</span><span>7.5</span><span>10.0</span>
+                        </div>
+                    </div>
+
+                    <!-- Seismic Risk Level -->
+                    <div class="result-item result-risk">
+                        <div class="result-icon">🛡️</div>
+                        <div class="result-label">SEISMIC RISK LEVEL</div>
+                        <div class="result-value" id="result-risk">--</div>
+                        <div class="risk-badges">
+                            <span class="risk-badge low" id="badge-low">Low</span>
+                            <span class="risk-badge medium" id="badge-medium">Medium</span>
+                            <span class="risk-badge high" id="badge-high">High</span>
+                        </div>
+                    </div>
+
+                    <!-- Geological Zone -->
+                    <div class="result-item result-zone">
+                        <div class="result-icon">🌍</div>
+                        <div class="result-label">GEOLOGICAL ZONE</div>
+                        <div class="result-value" id="result-zone-name" style="font-size: 1.5rem; margin-top: 1rem;">--</div>
+                        <div id="result-zone-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">--</div>
+                    </div>
+
+                    <!-- High-Mag Probability -->
+                    <div class="result-item result-probability">
+                        <div class="result-icon">📈</div>
+                        <div class="result-label">High-Magnitude Probability (≥6.0)</div>
+                        <div class="result-value" id="result-probability">—</div>
+                        <div class="prob-ring-container">
+                            <svg class="prob-ring" viewBox="0 0 120 120">
+                                <circle class="prob-ring-bg" cx="60" cy="60" r="52" />
+                                <circle class="prob-ring-fill" id="prob-ring-fill" cx="60" cy="60" r="52"
+                                        stroke-dasharray="326.7" stroke-dashoffset="326.7" />
+                            </svg>
+                            <div class="prob-ring-text" id="prob-ring-text">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-summary" id="result-summary"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ DATA INSIGHTS SECTION ═══════════ -->
+    <section id="insights">
+        <div class="section-header">
+            <span class="section-tag">Exploratory Data Analysis</span>
+            <h2>Data Insights</h2>
+            <p>Visualizations generated from 376,000+ earthquake events spanning 25 years (2000–2025).</p>
+        </div>
+
+        <div class="insights-tabs">
+            <button class="tab-btn active" data-tab="eda">EDA Plots</button>
+            <button class="tab-btn" data-tab="eval">Model Evaluation</button>
+        </div>
+
+        <div class="plots-grid" id="plots-grid">
+            <!-- Filled by JavaScript -->
+        </div>
+    </section>
+
+    <!-- ═══════════ PERFORMANCE SECTION ═══════════ -->
+    <section id="performance">
+        <div class="section-header">
+            <span class="section-tag">Model Evaluation</span>
+            <h2>Performance Metrics</h2>
+            <p>Comparative evaluation of all trained models on the held-out 20% test set.</p>
+        </div>
+
+        <div class="perf-cards" id="perf-cards">
+            <!-- Filled by JavaScript -->
+        </div>
+    </section>
+
+    <!-- ═══════════ ABOUT / FOOTER ═══════════ -->
+    <section id="about">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>About This Project</h2>
+                <p>
+                    An undergraduate research project (URP 4301) by <strong>Group 41010_3</strong>,
+                    8th Semester 2026, at the Institute of Technical Education and Research (ITER),
+                    Department of Computer Science & Information Technology.
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">scikit-learn</span>
+                    <span class="tech-tag">Random Forest</span>
+                    <span class="tech-tag">Gradient Boosting</span>
+                    <span class="tech-tag">USGS API</span>
+                    <span class="tech-tag">pandas</span>
+                    <span class="tech-tag">matplotlib</span>
+                    <span class="tech-tag">Flask</span>
+                </div>
+            </div>
+            <div class="about-models">
+                <div class="model-card-mini">
+                    <h4>Model 1</h4>
+                    <p>Magnitude Prediction</p>
+                    <span class="model-type">Regression</span>
+                </div>
+                <div class="model-card-mini">
+                    <h4>Model 2</h4>
+                    <p>Risk Classification</p>
+                    <span class="model-type">Multiclass</span>
+                </div>
+                <div class="model-card-mini">
+                    <h4>Model 3</h4>
+                    <p>High-Mag Probability</p>
+                    <span class="model-type">Binary</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 Group 41010_3 · ITER, SOA University · Powered by USGS Earthquake Catalog</p>
+    </footer>
+
+    <!-- ═══════════ LIGHTBOX MODAL ═══════════ -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightbox-close">&times;</button>
+        <img id="lightbox-img" src="" alt="Plot enlarged">
+        <p class="lightbox-caption" id="lightbox-caption"></p>
+    </div>
+
+    <script src="/script.js?v=2"></script>
+</body>
+</html>

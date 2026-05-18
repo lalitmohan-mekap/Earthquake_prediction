@@ -63,7 +63,6 @@ def load_train_data():
     print(f"Loaded {len(df)} training samples")
     # Subsampling disabled for Phase 3 Execution to maximize accuracy
     return df
-    return df
 
 
 def train_model_1(X: np.ndarray, y_mag: np.ndarray, scaler: StandardScaler):
